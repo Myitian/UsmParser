@@ -1,5 +1,5 @@
 using System.Security.Cryptography;
-using UsmParser.UsmChunkEnumerators;
+using UsmParser.UsmChunkEnumerables;
 using UsmParser.UsmChunks;
 
 while (true)
@@ -14,50 +14,50 @@ while (true)
     switch (m)
     {
         case Mode.Memory:
-            foreach (var chunk in new MemoryUsmChunkEnumerator(data))
+            foreach (var chunk in new MemoryUsmChunkEnumerable(data))
                 PrintChunkInfo(chunk);
             break;
         case Mode.Span:
-            foreach (var chunk in new SpanUsmChunkEnumerator(data))
+            foreach (var chunk in new SpanUsmChunkEnumerable(data))
                 PrintChunkInfo(chunk);
             break;
         case Mode.Sequence:
-            foreach (var chunk in new SequenceUsmChunkEnumerator(new(data)))
+            foreach (var chunk in new SequenceUsmChunkEnumerable(new(data)))
                 PrintChunkInfo(chunk);
             break;
         case Mode.Ref:
-            foreach (var chunk in new RefUsmChunkEnumerator(in data[0], (uint)data.Length))
+            foreach (var chunk in new RefUsmChunkEnumerable(in data[0], (uint)data.Length))
                 PrintChunkInfo(chunk);
             break;
         case Mode.Array:
-            foreach (var chunk in new ArrayUsmChunkEnumerator(new(data)))
+            foreach (var chunk in new ArrayUsmChunkEnumerable(new(data)))
                 PrintChunkInfo(chunk);
             break;
         case Mode.Stream:
             using (MemoryStream ms = new(data))
             {
-                foreach (var chunk in new StreamUsmChunkEnumerator(ms))
+                foreach (var chunk in new StreamUsmChunkEnumerable(ms))
                     PrintChunkInfo(chunk);
             }
             break;
         case Mode.LazyStream:
             using (MemoryStream ms = new(data))
             {
-                foreach (var chunk in new LazyStreamUsmChunkEnumerator(ms))
+                foreach (var chunk in new LazyStreamUsmChunkEnumerable(ms))
                     PrintChunkInfo(chunk);
             }
             break;
         case Mode.AsyncStream:
             using (MemoryStream ms = new(data))
             {
-                await foreach (var chunk in new StreamUsmChunkEnumerator(ms))
+                await foreach (var chunk in new StreamUsmChunkEnumerable(ms))
                     await PrintChunkInfoAsync(chunk);
             }
             break;
         case Mode.AsyncLazyStream:
             using (MemoryStream ms = new(data))
             {
-                await foreach (var chunk in new LazyStreamUsmChunkEnumerator(ms))
+                await foreach (var chunk in new LazyStreamUsmChunkEnumerable(ms))
                     await PrintChunkInfoAsync(chunk);
             }
             break;

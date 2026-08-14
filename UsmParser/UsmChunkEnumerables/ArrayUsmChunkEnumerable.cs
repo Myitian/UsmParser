@@ -31,28 +31,29 @@ public readonly struct ArrayUsmChunkEnumerable(ArraySegment<byte> segment)
 
         public bool MoveNext()
         {
-            if (_segment.Count == 0)
+            ArraySegment<byte> segment = _segment;
+            if (segment.Count == 0)
                 return false;
-            if (_segment.Count < 8)
+            if (segment.Count < 8)
             {
                 _segment = default;
                 throw new EndOfStreamException();
             }
-            uint signature = BinaryPrimitives.ReadUInt32BigEndian(_segment);
-            uint dataSize = BinaryPrimitives.ReadUInt32BigEndian(_segment[4..]);
+            uint signature = BinaryPrimitives.ReadUInt32BigEndian(segment);
+            uint dataSize = BinaryPrimitives.ReadUInt32BigEndian(segment.AsSpan(4));
             if (dataSize > int.MaxValue)
             {
                 _segment = default;
                 throw new NotSupportedException($"Data size {dataSize} is too large to be processed.");
             }
-            _segment = _segment[8..];
-            if ((uint)_segment.Count < dataSize)
+            segment = segment[8..];
+            if ((uint)segment.Count < dataSize)
             {
                 _segment = default;
                 throw new EndOfStreamException();
             }
-            Current = new(signature, _segment[..(int)dataSize]);
-            _segment = _segment[(int)dataSize..];
+            Current = new(signature, segment[..(int)dataSize]);
+            _segment = segment[(int)dataSize..];
             return true;
         }
         public void Reset()

@@ -31,28 +31,29 @@ public readonly struct MemoryUsmChunkEnumerable(ReadOnlyMemory<byte> memory)
 
         public bool MoveNext()
         {
-            if (_memory.IsEmpty)
+            ReadOnlyMemory<byte> memory = _memory;
+            if (memory.IsEmpty)
                 return false;
-            if (_memory.Length < 8)
+            if (memory.Length < 8)
             {
                 _memory = default;
                 throw new EndOfStreamException();
             }
-            uint signature = BinaryPrimitives.ReadUInt32BigEndian(_memory.Span);
-            uint dataSize = BinaryPrimitives.ReadUInt32BigEndian(_memory.Span[4..]);
+            uint signature = BinaryPrimitives.ReadUInt32BigEndian(memory.Span);
+            uint dataSize = BinaryPrimitives.ReadUInt32BigEndian(memory.Span[4..]);
             if (dataSize > int.MaxValue)
             {
-                _memory = default;
+                memory = default;
                 throw new NotSupportedException($"Data size {dataSize} is too large to be processed.");
             }
-            _memory = _memory[8..];
-            if ((uint)_memory.Length < dataSize)
+            memory = memory[8..];
+            if ((uint)memory.Length < dataSize)
             {
                 _memory = default;
                 throw new EndOfStreamException();
             }
-            Current = new(signature, _memory[..(int)dataSize]);
-            _memory = _memory[(int)dataSize..];
+            Current = new(signature, memory[..(int)dataSize]);
+            _memory = memory[(int)dataSize..];
             return true;
         }
         public void Reset()

@@ -3,7 +3,8 @@ using System.Buffers;
 namespace UsmParser.UsmChunks;
 
 #pragma warning disable CA1815
-public readonly struct SequenceUsmChunk : IUsmChunk<ReadOnlySequence<byte>>, IAsyncCopyableUsmChunk
+public readonly struct SequenceUsmChunk
+    : IUsmChunk<ReadOnlySequence<byte>>, IAsyncCopyableUsmChunk
 {
     public uint Signature { get; }
     public uint DataLength { get; }

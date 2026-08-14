@@ -1,6 +1,7 @@
 namespace UsmParser.Utilities;
 
-public sealed class LengthLimitedStream(Stream stream, long length, bool leaveOpen = true) : Stream
+public sealed class LengthLimitedStream(Stream stream, long length, bool leaveOpen = true)
+    : Stream
 {
     private readonly bool _leaveOpen = leaveOpen;
     public Stream BaseStream { get; } = stream;

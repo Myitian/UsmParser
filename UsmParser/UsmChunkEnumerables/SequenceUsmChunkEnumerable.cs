@@ -32,27 +32,28 @@ public readonly struct SequenceUsmChunkEnumerable(ReadOnlySequence<byte> sequenc
 
         public bool MoveNext()
         {
-            if (_sequence.IsEmpty)
+            ReadOnlySequence<byte> sequence = _sequence;
+            if (sequence.IsEmpty)
                 return false;
-            if (_sequence.Length < 8)
+            if (sequence.Length < 8)
             {
                 _sequence = default;
                 throw new EndOfStreamException();
             }
             Span<byte> header = stackalloc byte[8];
-            SequencePosition pos = _sequence.GetPosition(8);
-            _sequence.Slice(_sequence.Start, pos).CopyTo(header);
-            _sequence = _sequence.Slice(pos);
+            SequencePosition pos = sequence.GetPosition(8);
+            sequence.Slice(sequence.Start, pos).CopyTo(header);
+            sequence = sequence.Slice(pos);
             uint signature = BinaryPrimitives.ReadUInt32BigEndian(header);
             uint dataSize = BinaryPrimitives.ReadUInt32BigEndian(header[4..]);
-            if (_sequence.Length < dataSize)
+            if (sequence.Length < dataSize)
             {
                 _sequence = default;
                 throw new EndOfStreamException();
             }
-            pos = _sequence.GetPosition(dataSize);
-            Current = new(signature, _sequence.Slice(0, pos));
-            _sequence = _sequence.Slice(pos);
+            pos = sequence.GetPosition(dataSize);
+            Current = new(signature, sequence.Slice(0, pos));
+            _sequence = sequence.Slice(pos);
             return true;
         }
         public void Reset()

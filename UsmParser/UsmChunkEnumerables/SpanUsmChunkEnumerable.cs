@@ -24,28 +24,29 @@ public readonly ref struct SpanUsmChunkEnumerable(ReadOnlySpan<byte> span)
 
         public bool MoveNext()
         {
-            if (_span.IsEmpty)
+            ReadOnlySpan<byte> span = _span;
+            if (span.IsEmpty)
                 return false;
-            if (_span.Length < 8)
+            if (span.Length < 8)
             {
                 _span = default;
                 throw new EndOfStreamException();
             }
-            uint signature = BinaryPrimitives.ReadUInt32BigEndian(_span);
-            uint dataSize = BinaryPrimitives.ReadUInt32BigEndian(_span[4..]);
+            uint signature = BinaryPrimitives.ReadUInt32BigEndian(span);
+            uint dataSize = BinaryPrimitives.ReadUInt32BigEndian(span[4..]);
             if (dataSize > int.MaxValue)
             {
                 _span = default;
                 throw new NotSupportedException($"Data size {dataSize} is too large to be processed.");
             }
-            _span = _span[8..];
-            if ((uint)_span.Length < dataSize)
+            span = span[8..];
+            if ((uint)span.Length < dataSize)
             {
                 _span = default;
                 throw new EndOfStreamException();
             }
-            Current = new(signature, _span[..(int)dataSize]);
-            _span = _span[(int)dataSize..];
+            Current = new(signature, span[..(int)dataSize]);
+            _span = span[(int)dataSize..];
             return true;
         }
         public void Reset()

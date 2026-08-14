@@ -27,9 +27,10 @@ public readonly ref struct RefUsmChunkEnumerable(ref readonly byte reference, nu
 
         public bool MoveNext()
         {
-            if (_length == 0)
+            nuint length = _length;
+            if (length == 0)
                 return false;
-            if (_length < 8)
+            if (length < 8)
             {
                 _reference = ref Unsafe.NullRef<byte>();
                 _length = 0;
@@ -39,8 +40,8 @@ public readonly ref struct RefUsmChunkEnumerable(ref readonly byte reference, nu
             uint signature = ReadUInt32BigEndian(in reference);
             reference = ref Unsafe.AddByteOffset(ref Unsafe.AsRef(in reference), 4);
             uint dataSize = ReadUInt32BigEndian(in reference);
-            _length -= 8;
-            if (dataSize > _length)
+            length -= 8;
+            if (dataSize > length)
             {
                 _reference = ref Unsafe.NullRef<byte>();
                 _length = 0;
@@ -48,8 +49,8 @@ public readonly ref struct RefUsmChunkEnumerable(ref readonly byte reference, nu
             }
             reference = ref Unsafe.AddByteOffset(ref Unsafe.AsRef(in reference), 4);
             Current = new(signature, dataSize, in reference);
-            _length -= dataSize;
-            _reference = ref reference;
+            _length = length - dataSize;
+            _reference = ref Unsafe.AddByteOffset(ref Unsafe.AsRef(in reference), dataSize);
             return true;
         }
         public void Reset()

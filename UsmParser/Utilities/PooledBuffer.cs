@@ -2,7 +2,8 @@ using System.Buffers;
 
 namespace UsmParser.Utilities;
 
-public sealed class PooledBuffer : IDisposable
+public sealed class PooledBuffer
+    : IDisposable
 {
     private readonly ArrayPool<byte> _pool;
     private byte[] _buffer;

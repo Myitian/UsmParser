@@ -5,6 +5,7 @@ using UsmParser.UsmChunks;
 
 namespace UsmParser.UsmChunkEnumerables;
 
+#pragma warning disable CA1815
 public readonly struct SequenceUsmChunkEnumerable(ReadOnlySequence<byte> sequence)
     : IUsmChunkEnumerable<SequenceUsmChunk, SequenceUsmChunkEnumerable.Enumerator>, IUsmChunkEnumerable<SequenceUsmChunk>
 {

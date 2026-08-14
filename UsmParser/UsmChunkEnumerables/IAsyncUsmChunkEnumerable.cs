@@ -12,6 +12,3 @@ public interface IAsyncUsmChunkEnumerable<out T, out TEnumerator>
 {
     TEnumerator GetAsyncEnumerator(CancellationToken cancellationToken = default);
 }
-public interface IAsyncUsmChunkEnumerator<out T>
-    : IUsmChunkEnumeratorInfo, IAsyncEnumerator<T>
-    where T : IUsmChunk, allows ref struct;

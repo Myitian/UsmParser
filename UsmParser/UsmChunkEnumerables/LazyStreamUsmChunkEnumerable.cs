@@ -85,6 +85,9 @@ public sealed class LazyStreamUsmChunkEnumerable
             ObjectDisposedException.ThrowIf(_disposed, this);
             if (_completed)
                 return false;
+            if (!_first)
+                Current.Data.CopyTo(Stream.Null);
+            _first = false;
             Span<byte> header = stackalloc byte[8];
             switch (_stream.ReadAtLeast(header, 8, false))
             {
@@ -94,9 +97,6 @@ public sealed class LazyStreamUsmChunkEnumerable
                 case 8:
                     uint signature = BinaryPrimitives.ReadUInt32BigEndian(header);
                     uint dataSize = BinaryPrimitives.ReadUInt32BigEndian(header[4..]);
-                    if (!_first)
-                        Current.Data.CopyTo(Stream.Null);
-                    _first = false;
 #pragma warning disable CA2000
                     Current = new(signature, new(_stream, dataSize, true));
 #pragma warning restore CA2000
@@ -117,6 +117,9 @@ public sealed class LazyStreamUsmChunkEnumerable
         private async ValueTask<bool> CoreMoveNextAsync()
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
+            if (!_first)
+                await Current.Data.CopyToAsync(Stream.Null, _cancellationToken).ConfigureAwait(false);
+            _first = false;
             switch (await _stream.ReadAtLeastAsync(_buffer ??= new byte[8], 8, false, _cancellationToken).ConfigureAwait(false))
             {
                 case 0:
@@ -125,11 +128,6 @@ public sealed class LazyStreamUsmChunkEnumerable
                 case 8:
                     uint signature = BinaryPrimitives.ReadUInt32BigEndian(_buffer);
                     uint dataSize = BinaryPrimitives.ReadUInt32BigEndian(_buffer.AsSpan(4));
-                    if (!_first)
-                    {
-                        await Current.Data.CopyToAsync(Stream.Null, _cancellationToken).ConfigureAwait(false);
-                    }
-                    _first = false;
 #pragma warning disable CA2000
                     Current = new(signature, new(_stream, dataSize, true));
 #pragma warning restore CA2000

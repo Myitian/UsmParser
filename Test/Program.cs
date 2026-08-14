@@ -80,16 +80,24 @@ void Test<TEnumrable, TEnumerator, TChunk>(scoped TEnumrable enumerable)
     where TEnumerator : IEnumerator<TChunk>, allows ref struct
     where TChunk : IUsmChunk, allows ref struct
 {
+    bool b = false;
     foreach (TChunk chunk in enumerable)
-        PrintChunkInfo(chunk);
+    {
+        if (b = !b)
+            PrintChunkInfo(chunk);
+    }
 }
 async Task TestAsync<TEnumrable, TEnumerator, TChunk>(TEnumrable enumerable)
     where TEnumrable : IAsyncUsmChunkEnumerable<TChunk, TEnumerator>
     where TEnumerator : IAsyncEnumerator<TChunk>
     where TChunk : IAsyncCopyableUsmChunk
 {
+    bool b = false;
     await foreach (TChunk chunk in enumerable)
-        await PrintChunkInfoAsync(chunk);
+    {
+        if (b = !b)
+            await PrintChunkInfoAsync(chunk);
+    }
 }
 enum Mode
 {

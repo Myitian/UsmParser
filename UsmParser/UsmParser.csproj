@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <AnalysisLevel>latest-all</AnalysisLevel>
+    <IsAotCompatible>true</IsAotCompatible>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Authors>Myitian</Authors>
+    <Version>1.0.0</Version>
+    <Description>A low-level CRI USM file parser that supports reading USM files from various sources, such as `ReadOnlySpan&lt;byte&gt;`, `ReadOnlySequence&lt;byte&gt;`, or `Stream`.</Description>
+    <PackageProjectUrl>https://github.com/Myitian/UsmParser</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Myitian/UsmParser</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+</Project>

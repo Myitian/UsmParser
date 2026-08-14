@@ -2,48 +2,62 @@ using System.Buffers.Binary;
 using System.Collections;
 using UsmParser.UsmChunks;
 
-namespace UsmParser.UsmChunkEnumerators;
+namespace UsmParser.UsmChunkEnumerables;
 
-public struct MemoryUsmChunkEnumerator(ReadOnlyMemory<byte> memory)
-    : IUsmChunkEnumerator<MemoryUsmChunk>
+#pragma warning disable CA1815
+public readonly struct MemoryUsmChunkEnumerable(ReadOnlyMemory<byte> memory)
+    : IUsmChunkEnumerable<MemoryUsmChunk, MemoryUsmChunkEnumerable.Enumerator>, IUsmChunkEnumerable<MemoryUsmChunk>
 {
-    private readonly ReadOnlyMemory<byte> _originalMemory = memory;
-    private ReadOnlyMemory<byte> _memory = memory;
-    public readonly uint InstanceMaxDataLength => (uint)_memory.Length;
-    public MemoryUsmChunk Current { readonly get; private set; }
-    readonly object IEnumerator.Current => Current;
+    private readonly ReadOnlyMemory<byte> _memory = memory;
+    public uint InstanceMaxDataLength => (uint)_memory.Length;
     public static uint MaxDataLength => int.MaxValue;
+    public Enumerator GetEnumerator()
+        => new(_memory);
+    IEnumerator<MemoryUsmChunk> IUsmChunkEnumerable<MemoryUsmChunk, IEnumerator<MemoryUsmChunk>>.GetEnumerator()
+        => GetEnumerator();
+    IEnumerator<MemoryUsmChunk> IEnumerable<MemoryUsmChunk>.GetEnumerator()
+        => GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator()
+        => GetEnumerator();
 
-    public bool MoveNext()
+    public struct Enumerator(ReadOnlyMemory<byte> memory)
+        : IUsmChunkEnumerator<MemoryUsmChunk>
     {
-        if (_memory.IsEmpty)
-            return false;
-        if (_memory.Length < 8)
+        private ReadOnlyMemory<byte> _memory = memory;
+        public readonly uint InstanceMaxDataLength => (uint)_memory.Length;
+        public MemoryUsmChunk Current { readonly get; private set; }
+        readonly object IEnumerator.Current => Current;
+        public static uint MaxDataLength => int.MaxValue;
+
+        public bool MoveNext()
         {
-            _memory = default;
-            throw new EndOfStreamException();
+            if (_memory.IsEmpty)
+                return false;
+            if (_memory.Length < 8)
+            {
+                _memory = default;
+                throw new EndOfStreamException();
+            }
+            uint signature = BinaryPrimitives.ReadUInt32BigEndian(_memory.Span);
+            uint dataSize = BinaryPrimitives.ReadUInt32BigEndian(_memory.Span[4..]);
+            if (dataSize > int.MaxValue)
+            {
+                _memory = default;
+                throw new NotSupportedException($"Data size {dataSize} is too large to be processed.");
+            }
+            _memory = _memory[8..];
+            if ((uint)_memory.Length < dataSize)
+            {
+                _memory = default;
+                throw new EndOfStreamException();
+            }
+            Current = new(signature, _memory[..(int)dataSize]);
+            _memory = _memory[(int)dataSize..];
+            return true;
         }
-        uint signature = BinaryPrimitives.ReadUInt32BigEndian(_memory.Span);
-        uint dataSize = BinaryPrimitives.ReadUInt32BigEndian(_memory.Span[4..]);
-        if (dataSize > int.MaxValue)
-        {
-            _memory = default;
-            throw new NotSupportedException($"Data size {dataSize} is too large to be processed.");
-        }
-        _memory = _memory[8..];
-        if ((uint)_memory.Length < dataSize)
-        {
-            _memory = default;
-            throw new EndOfStreamException();
-        }
-        Current = new(signature, _memory[..(int)dataSize]);
-        _memory = _memory[(int)dataSize..];
-        return true;
+        public void Reset()
+            => throw new NotSupportedException();
+        public readonly void Dispose()
+        { }
     }
-    public void Reset()
-        => _memory = _originalMemory;
-    public readonly void Dispose()
-    { }
-    public readonly MemoryUsmChunkEnumerator GetEnumerator()
-        => this;
 }

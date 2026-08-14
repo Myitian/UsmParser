@@ -3,60 +3,64 @@ using System.Collections;
 using System.Runtime.CompilerServices;
 using UsmParser.UsmChunks;
 
-namespace UsmParser.UsmChunkEnumerators;
+namespace UsmParser.UsmChunkEnumerables;
 
-public ref struct RefUsmChunkEnumerator(ref readonly byte reference, nuint length)
-    : IUsmChunkEnumerator<RefUsmChunk>
+public readonly ref struct RefUsmChunkEnumerable(ref readonly byte reference, nuint length)
+    : IUsmChunkEnumerable<RefUsmChunk, RefUsmChunkEnumerable.Enumerator>
 {
-    private readonly ref readonly byte _originalReference = ref reference;
-    private readonly nuint _originalLength = length;
-    private ref readonly byte _reference = ref reference;
-    private nuint _length = length;
-    public readonly uint InstanceMaxDataLength => (uint)Math.Min(uint.MaxValue, _length);
-    public RefUsmChunk Current { readonly get; private set; }
-    readonly object IEnumerator.Current => throw new NotSupportedException();
+    private readonly ref readonly byte _reference = ref reference;
+    private readonly nuint _length = length;
+    public uint InstanceMaxDataLength => _length >= 8 ? (uint)Math.Min(uint.MaxValue, _length - 8) : 0;
     public static uint MaxDataLength => uint.MaxValue;
+    public Enumerator GetEnumerator()
+        => new(in _reference, _length);
 
-    public bool MoveNext()
+    public ref struct Enumerator(ref readonly byte reference, nuint length)
+        : IUsmChunkEnumerator<RefUsmChunk>
     {
-        if (_length == 0)
-            return false;
-        if (_length < 8)
+        private ref readonly byte _reference = ref reference;
+        private nuint _length = length;
+        public readonly uint InstanceMaxDataLength => _length >= 8 ? (uint)Math.Min(uint.MaxValue, _length - 8) : 0;
+        public RefUsmChunk Current { readonly get; private set; }
+        readonly object IEnumerator.Current => throw new NotSupportedException();
+        public static uint MaxDataLength => uint.MaxValue;
+
+        public bool MoveNext()
         {
-            _reference = ref Unsafe.NullRef<byte>();
-            _length = 0;
-            throw new EndOfStreamException();
+            if (_length == 0)
+                return false;
+            if (_length < 8)
+            {
+                _reference = ref Unsafe.NullRef<byte>();
+                _length = 0;
+                throw new EndOfStreamException();
+            }
+            ref readonly byte reference = ref _reference;
+            uint signature = ReadUInt32BigEndian(in reference);
+            reference = ref Unsafe.AddByteOffset(ref Unsafe.AsRef(in reference), 4);
+            uint dataSize = ReadUInt32BigEndian(in reference);
+            _length -= 8;
+            if (dataSize > _length)
+            {
+                _reference = ref Unsafe.NullRef<byte>();
+                _length = 0;
+                throw new EndOfStreamException();
+            }
+            reference = ref Unsafe.AddByteOffset(ref Unsafe.AsRef(in reference), 4);
+            Current = new(signature, dataSize, in reference);
+            _length -= dataSize;
+            _reference = ref reference;
+            return true;
         }
-        ref readonly byte reference = ref _reference;
-        uint signature = ReadUInt32BigEndian(in reference);
-        reference = ref Unsafe.AddByteOffset(ref Unsafe.AsRef(in reference), 4);
-        uint dataSize = ReadUInt32BigEndian(in reference);
-        _length -= 8;
-        if (dataSize > _length)
+        public void Reset()
+            => throw new NotSupportedException();
+        public readonly void Dispose()
+        { }
+        private static uint ReadUInt32BigEndian(scoped ref readonly byte pointer)
         {
-            _reference = ref Unsafe.NullRef<byte>();
-            _length = 0;
-            throw new EndOfStreamException();
+            return BitConverter.IsLittleEndian
+                ? BinaryPrimitives.ReverseEndianness(Unsafe.ReadUnaligned<uint>(in pointer))
+                : Unsafe.ReadUnaligned<uint>(in pointer);
         }
-        reference = ref Unsafe.AddByteOffset(ref Unsafe.AsRef(in reference), 4);
-        Current = new(signature, dataSize, in reference);
-        _length -= dataSize;
-        _reference = ref reference;
-        return true;
     }
-    public void Reset()
-    {
-        _reference = ref _originalReference;
-        _length = _originalLength;
-    }
-    public readonly void Dispose()
-    { }
-    private static uint ReadUInt32BigEndian(scoped ref readonly byte pointer)
-    {
-        return BitConverter.IsLittleEndian
-            ? BinaryPrimitives.ReverseEndianness(Unsafe.ReadUnaligned<uint>(in pointer))
-            : Unsafe.ReadUnaligned<uint>(in pointer);
-    }
-    public readonly RefUsmChunkEnumerator GetEnumerator()
-        => this;
 }

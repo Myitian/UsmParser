@@ -1,12 +1,17 @@
 using UsmParser.UsmChunks;
 
-namespace UsmParser.UsmChunkEnumerators;
+namespace UsmParser.UsmChunkEnumerables;
 
-public interface IUsmChunkEnumerator
-{
-    uint MaxDataLength { get; }
-}
-public interface IUsmChunkEnumerator<out T> : IUsmChunkEnumerator, IEnumerator<T>
+public interface IUsmChunkEnumerable<out T>
+    : IUsmChunkEnumerable<T, IEnumerator<T>>, IEnumerable<T>
     where T : IUsmChunk, allows ref struct;
-public interface IAsyncUsmChunkEnumerable<out T> : IUsmChunkEnumerator, IAsyncEnumerable<T>
+public interface IUsmChunkEnumerable<out T, out TEnumerator>
+    : IUsmChunkEnumeratorInfo
+    where T : IUsmChunk, allows ref struct
+    where TEnumerator : IEnumerator<T>, allows ref struct
+{
+    TEnumerator GetEnumerator();
+}
+public interface IUsmChunkEnumerator<out T>
+    : IUsmChunkEnumeratorInfo, IEnumerator<T>
     where T : IUsmChunk, allows ref struct;

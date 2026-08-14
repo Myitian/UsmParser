@@ -11,6 +11,8 @@ public readonly ref struct SpanUsmChunk(uint signature, ReadOnlySpan<byte> data)
     public ref readonly byte Reference => ref MemoryMarshal.GetReference(Data);
     public override string ToString()
         => IUsmChunk.ToString(Signature, DataLength, "span");
+    public RefUsmChunk AsRefUsmChunk()
+        => new(Signature, DataLength, in Reference);
     public void CopyTo(Span<byte> destination)
     {
         IUsmChunk.ValidateCopyToArgument(in this, destination);

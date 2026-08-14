@@ -19,7 +19,7 @@ public sealed class PooledBuffer
     public Memory<byte> GetBuffer()
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
-        return _buffer.AsMemory(0, Capacity);
+        return _buffer;
     }
     public void EnsureCapacity(int required, bool clearBeforeReturn = false, bool discardOldData = false)
     {

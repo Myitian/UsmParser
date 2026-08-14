@@ -14,6 +14,8 @@ public readonly struct MemoryUsmChunk(uint signature, ReadOnlyMemory<byte> data)
         => IUsmChunk.ToString(Signature, DataLength, "memory");
     public SpanUsmChunk AsSpanUsmChunk()
         => new(Signature, Data.Span);
+    public RefUsmChunk AsRefUsmChunk()
+        => new(Signature, DataLength, in Reference);
     public SequenceUsmChunk AsSequenceUsmChunk()
         => new(Signature, new(Data));
     public void CopyTo(Span<byte> destination)

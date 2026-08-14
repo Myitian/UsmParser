@@ -14,52 +14,35 @@ while (true)
     switch (m)
     {
         case Mode.Memory:
-            foreach (var chunk in new MemoryUsmChunkEnumerable(data))
-                PrintChunkInfo(chunk);
+            Test<MemoryUsmChunkEnumerable, MemoryUsmChunkEnumerable.Enumerator, MemoryUsmChunk>(new(data));
             break;
         case Mode.Span:
-            foreach (var chunk in new SpanUsmChunkEnumerable(data))
-                PrintChunkInfo(chunk);
+            Test<SpanUsmChunkEnumerable, SpanUsmChunkEnumerable.Enumerator, SpanUsmChunk>(new(data));
             break;
         case Mode.Sequence:
-            foreach (var chunk in new SequenceUsmChunkEnumerable(new(data)))
-                PrintChunkInfo(chunk);
+            Test<SequenceUsmChunkEnumerable, SequenceUsmChunkEnumerable.Enumerator, SequenceUsmChunk>(new(new(data)));
             break;
         case Mode.Ref:
-            foreach (var chunk in new RefUsmChunkEnumerable(in data[0], (uint)data.Length))
-                PrintChunkInfo(chunk);
+            Test<RefUsmChunkEnumerable, RefUsmChunkEnumerable.Enumerator, RefUsmChunk>(new(in data[0], (uint)data.Length));
             break;
         case Mode.Array:
-            foreach (var chunk in new ArrayUsmChunkEnumerable(new(data)))
-                PrintChunkInfo(chunk);
+            Test<ArrayUsmChunkEnumerable, ArrayUsmChunkEnumerable.Enumerator, ArrayUsmChunk>(new(new(data)));
             break;
         case Mode.Stream:
             using (MemoryStream ms = new(data))
-            {
-                foreach (var chunk in new StreamUsmChunkEnumerable(ms))
-                    PrintChunkInfo(chunk);
-            }
+                Test<StreamUsmChunkEnumerable, StreamUsmChunkEnumerable.Enumerator, MemoryUsmChunk>(new(ms));
             break;
         case Mode.LazyStream:
             using (MemoryStream ms = new(data))
-            {
-                foreach (var chunk in new LazyStreamUsmChunkEnumerable(ms))
-                    PrintChunkInfo(chunk);
-            }
+                Test<LazyStreamUsmChunkEnumerable, LazyStreamUsmChunkEnumerable.Enumerator, StreamUsmChunk>(new(ms));
             break;
         case Mode.AsyncStream:
             using (MemoryStream ms = new(data))
-            {
-                await foreach (var chunk in new StreamUsmChunkEnumerable(ms))
-                    await PrintChunkInfoAsync(chunk);
-            }
+                await TestAsync<StreamUsmChunkEnumerable, StreamUsmChunkEnumerable.Enumerator, MemoryUsmChunk>(new(ms));
             break;
         case Mode.AsyncLazyStream:
             using (MemoryStream ms = new(data))
-            {
-                await foreach (var chunk in new LazyStreamUsmChunkEnumerable(ms))
-                    await PrintChunkInfoAsync(chunk);
-            }
+                await TestAsync<LazyStreamUsmChunkEnumerable, LazyStreamUsmChunkEnumerable.Enumerator, StreamUsmChunk>(new(ms));
             break;
         default:
             return;
@@ -75,7 +58,7 @@ void PrintChunkInfo<T>(T chunk) where T : IUsmChunk, allows ref struct
             Content SHA-256: {Convert.ToHexStringLower(sha256.Hash!)}
             """);
 }
-async ValueTask PrintChunkInfoAsync<T>(T chunk) where T : IAsyncCopyableUsmChunk
+async Task PrintChunkInfoAsync<T>(T chunk) where T : IAsyncCopyableUsmChunk
 {
     using SHA256 sha256 = SHA256.Create();
     using (CryptoStream cs = new(Stream.Null, sha256, CryptoStreamMode.Write))
@@ -91,6 +74,22 @@ void PrintEnum<T>() where T : struct, Enum
     Array underlyingValues = Enum.GetValuesAsUnderlyingType<T>();
     for (int i = 0; i < values.Length; i++)
         Console.WriteLine($"[{underlyingValues.GetValue(i)}] {values[i]}");
+}
+void Test<TEnumrable, TEnumerator, TChunk>(scoped TEnumrable enumerable)
+    where TEnumrable : IUsmChunkEnumerable<TChunk, TEnumerator>, allows ref struct
+    where TEnumerator : IEnumerator<TChunk>, allows ref struct
+    where TChunk : IUsmChunk, allows ref struct
+{
+    foreach (TChunk chunk in enumerable)
+        PrintChunkInfo(chunk);
+}
+async Task TestAsync<TEnumrable, TEnumerator, TChunk>(TEnumrable enumerable)
+    where TEnumrable : IAsyncUsmChunkEnumerable<TChunk, TEnumerator>
+    where TEnumerator : IAsyncEnumerator<TChunk>
+    where TChunk : IAsyncCopyableUsmChunk
+{
+    await foreach (TChunk chunk in enumerable)
+        await PrintChunkInfoAsync(chunk);
 }
 enum Mode
 {

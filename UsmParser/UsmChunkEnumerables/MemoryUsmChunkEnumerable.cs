@@ -9,7 +9,7 @@ public readonly struct MemoryUsmChunkEnumerable(ReadOnlyMemory<byte> memory)
     : IUsmChunkEnumerable<MemoryUsmChunk, MemoryUsmChunkEnumerable.Enumerator>, IUsmChunkEnumerable<MemoryUsmChunk>
 {
     private readonly ReadOnlyMemory<byte> _memory = memory;
-    public uint InstanceMaxDataLength => (uint)_memory.Length;
+    public uint InstanceMaxDataLength => (uint)Math.Max(0, _memory.Length - 8);
     public static uint MaxDataLength => int.MaxValue;
     public Enumerator GetEnumerator()
         => new(_memory);
@@ -24,7 +24,7 @@ public readonly struct MemoryUsmChunkEnumerable(ReadOnlyMemory<byte> memory)
         : IUsmChunkEnumerator<MemoryUsmChunk>
     {
         private ReadOnlyMemory<byte> _memory = memory;
-        public readonly uint InstanceMaxDataLength => (uint)_memory.Length;
+        public readonly uint InstanceMaxDataLength => (uint)Math.Max(0, _memory.Length - 8);
         public MemoryUsmChunk Current { readonly get; private set; }
         readonly object IEnumerator.Current => Current;
         public static uint MaxDataLength => int.MaxValue;

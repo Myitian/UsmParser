@@ -10,7 +10,7 @@ public readonly struct SequenceUsmChunkEnumerable(ReadOnlySequence<byte> sequenc
     : IUsmChunkEnumerable<SequenceUsmChunk, SequenceUsmChunkEnumerable.Enumerator>, IUsmChunkEnumerable<SequenceUsmChunk>
 {
     private readonly ReadOnlySequence<byte> _sequence = sequence;
-    public uint InstanceMaxDataLength => (uint)Math.Min(uint.MaxValue, _sequence.Length);
+    public uint InstanceMaxDataLength => (uint)Math.Clamp(0, _sequence.Length - 8, uint.MaxValue);
     public static uint MaxDataLength => uint.MaxValue;
     public Enumerator GetEnumerator()
         => new(_sequence);
@@ -25,7 +25,7 @@ public readonly struct SequenceUsmChunkEnumerable(ReadOnlySequence<byte> sequenc
         : IUsmChunkEnumerator<SequenceUsmChunk>
     {
         private ReadOnlySequence<byte> _sequence = sequence;
-        public readonly uint InstanceMaxDataLength => (uint)Math.Min(uint.MaxValue, _sequence.Length);
+        public readonly uint InstanceMaxDataLength => (uint)Math.Clamp(0, _sequence.Length - 8, uint.MaxValue);
         public SequenceUsmChunk Current { get; private set; }
         readonly object IEnumerator.Current => Current;
         public static uint MaxDataLength => uint.MaxValue;

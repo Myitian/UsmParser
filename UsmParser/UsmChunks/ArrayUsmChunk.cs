@@ -16,6 +16,8 @@ public readonly struct ArrayUsmChunk(uint signature, ArraySegment<byte> data)
         => new(Signature, Data);
     public SpanUsmChunk AsSpanUsmChunk()
         => new(Signature, Data);
+    public RefUsmChunk AsRefUsmChunk()
+        => new(Signature, DataLength, in Reference);
     public SequenceUsmChunk AsSequenceUsmChunk()
         => new(Signature, new(Data));
     public void CopyTo(Span<byte> destination)

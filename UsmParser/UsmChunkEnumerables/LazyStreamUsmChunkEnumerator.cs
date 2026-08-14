@@ -22,9 +22,10 @@ public sealed class LazyStreamUsmChunkEnumerator
         _leaveOpen = leaveOpen;
     }
 
-    public uint MaxDataLength => uint.MaxValue;
+    public uint InstanceMaxDataLength => (uint)Array.MaxLength;
     public StreamUsmChunk Current { get; private set; }
     object IEnumerator.Current => Current;
+    public static uint MaxDataLength => (uint)Array.MaxLength;
 
     public bool MoveNext()
     {

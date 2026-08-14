@@ -23,9 +23,10 @@ public sealed class StreamUsmChunkEnumerator
         _leaveOpen = leaveOpen;
     }
 
-    public uint MaxDataLength => (uint)Array.MaxLength;
+    public uint InstanceMaxDataLength => (uint)Array.MaxLength;
     public MemoryUsmChunk Current { get; private set; }
     object IEnumerator.Current => Current;
+    public static uint MaxDataLength => (uint)Array.MaxLength;
 
     public bool MoveNext()
     {
@@ -43,7 +44,7 @@ public sealed class StreamUsmChunkEnumerator
                 uint dataSize = BinaryPrimitives.ReadUInt32BigEndian(header[4..]);
                 if (dataSize > Array.MaxLength)
                     throw new NotSupportedException($"Data size {dataSize} is too large to be processed.");
-                _buffer.EnsureCapacity((int)dataSize);
+                _buffer.EnsureCapacity((int)dataSize, discardOldData: true);
                 Memory<byte> memory = _buffer.GetBuffer()[..(int)dataSize];
                 if (_stream.ReadAtLeast(memory.Span, (int)dataSize, false) < dataSize)
                     goto default;
@@ -98,7 +99,7 @@ public sealed class StreamUsmChunkEnumerator
         private async ValueTask<bool> CoreMoveNextAsync()
         {
             ObjectDisposedException.ThrowIf(_this._disposed, this);
-            _this._buffer.EnsureCapacity(8);
+            _this._buffer.EnsureCapacity(8, discardOldData: true);
             Memory<byte> header = _this._buffer.GetBuffer()[..8];
             switch (await _this._stream.ReadAtLeastAsync(header, 8, false, _cancellationToken).ConfigureAwait(false))
             {
@@ -110,7 +111,7 @@ public sealed class StreamUsmChunkEnumerator
                     uint dataSize = BinaryPrimitives.ReadUInt32BigEndian(header.Span[4..]);
                     if (dataSize > Array.MaxLength)
                         throw new NotSupportedException($"Data size {dataSize} is too large to be processed.");
-                    _this._buffer.EnsureCapacity((int)dataSize);
+                    _this._buffer.EnsureCapacity((int)dataSize, discardOldData: true);
                     Memory<byte> memory = _this._buffer.GetBuffer()[..(int)dataSize];
                     if (await _this._stream.ReadAtLeastAsync(memory, (int)dataSize, false).ConfigureAwait(false) < dataSize)
                         goto default;

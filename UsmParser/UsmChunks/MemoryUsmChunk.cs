@@ -11,14 +11,14 @@ public readonly struct MemoryUsmChunk(uint signature, ReadOnlyMemory<byte> data)
     public ReadOnlyMemory<byte> Data { get; } = data;
     public ref readonly byte Reference => ref MemoryMarshal.GetReference(Data.Span);
     public override string ToString()
-        => IUsmChunk.ToString(this, "memory");
+        => IUsmChunk.ToString(Signature, DataLength, "memory");
     public SpanUsmChunk AsSpanUsmChunk()
         => new(Signature, Data.Span);
     public SequenceUsmChunk AsSequenceUsmChunk()
         => new(Signature, new(Data));
     public void CopyTo(Span<byte> destination)
     {
-        IUsmChunk.ValidateCopyToArgument(this, destination);
+        IUsmChunk.ValidateCopyToArgument(in this, destination);
         Data.Span.CopyTo(destination);
     }
     public void CopyTo(Stream destination)

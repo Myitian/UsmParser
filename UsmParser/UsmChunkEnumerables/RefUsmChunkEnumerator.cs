@@ -12,9 +12,10 @@ public ref struct RefUsmChunkEnumerator(ref readonly byte reference, nuint lengt
     private readonly nuint _originalLength = length;
     private ref readonly byte _reference = ref reference;
     private nuint _length = length;
-    public readonly uint MaxDataLength => uint.MaxValue;
+    public readonly uint InstanceMaxDataLength => (uint)Math.Min(uint.MaxValue, _length);
     public RefUsmChunk Current { readonly get; private set; }
     readonly object IEnumerator.Current => throw new NotSupportedException();
+    public static uint MaxDataLength => uint.MaxValue;
 
     public bool MoveNext()
     {

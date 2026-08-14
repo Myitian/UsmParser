@@ -9,9 +9,10 @@ public struct MemoryUsmChunkEnumerator(ReadOnlyMemory<byte> memory)
 {
     private readonly ReadOnlyMemory<byte> _originalMemory = memory;
     private ReadOnlyMemory<byte> _memory = memory;
-    public readonly uint MaxDataLength => int.MaxValue;
+    public readonly uint InstanceMaxDataLength => (uint)_memory.Length;
     public MemoryUsmChunk Current { readonly get; private set; }
     readonly object IEnumerator.Current => Current;
+    public static uint MaxDataLength => int.MaxValue;
 
     public bool MoveNext()
     {

@@ -11,7 +11,7 @@ public readonly struct ArrayUsmChunk(uint signature, ArraySegment<byte> data)
     public ArraySegment<byte> Data { get; } = data;
     public ref readonly byte Reference => ref MemoryMarshal.GetReference(Data.AsSpan());
     public override string ToString()
-        => IUsmChunk.ToString(this, "array");
+        => IUsmChunk.ToString(Signature, DataLength, "array");
     public MemoryUsmChunk AsMemoryUsmChunk()
         => new(Signature, Data);
     public SpanUsmChunk AsSpanUsmChunk()
@@ -20,7 +20,7 @@ public readonly struct ArrayUsmChunk(uint signature, ArraySegment<byte> data)
         => new(Signature, new(Data));
     public void CopyTo(Span<byte> destination)
     {
-        IUsmChunk.ValidateCopyToArgument(this, destination);
+        IUsmChunk.ValidateCopyToArgument(in this, destination);
         Data.AsSpan().CopyTo(destination);
     }
     public void CopyTo(Stream destination)

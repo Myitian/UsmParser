@@ -19,10 +19,10 @@ public readonly struct SequenceUsmChunk : IUsmChunk<ReadOnlySequence<byte>>, IAs
     }
 
     public override string ToString()
-        => IUsmChunk.ToString(this, "sequence");
+        => IUsmChunk.ToString(Signature, DataLength, "sequence");
     public void CopyTo(Span<byte> destination)
     {
-        IUsmChunk.ValidateCopyToArgument(this, destination);
+        IUsmChunk.ValidateCopyToArgument(in this, destination);
         Data.CopyTo(destination);
     }
     public void CopyTo(Stream destination)

@@ -10,9 +10,10 @@ public struct SequenceUsmChunkEnumerator(ReadOnlySequence<byte> sequence)
 {
     private readonly ReadOnlySequence<byte> _originalSequence = sequence;
     private ReadOnlySequence<byte> _sequence = sequence;
-    public readonly uint MaxDataLength => uint.MaxValue;
+    public readonly uint InstanceMaxDataLength => (uint)Math.Min(uint.MaxValue, _sequence.Length);
     public SequenceUsmChunk Current { get; private set; }
     readonly object IEnumerator.Current => Current;
+    public static uint MaxDataLength => uint.MaxValue;
 
     public bool MoveNext()
     {

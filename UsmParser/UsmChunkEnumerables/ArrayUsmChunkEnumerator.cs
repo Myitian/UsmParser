@@ -9,9 +9,10 @@ public struct ArrayUsmChunkEnumerator(ArraySegment<byte> segment)
 {
     private readonly ArraySegment<byte> _originalSegment = segment;
     private ArraySegment<byte> _segment = segment;
-    public readonly uint MaxDataLength => (uint)Array.MaxLength;
+    public readonly uint InstanceMaxDataLength => (uint)_segment.Count;
     public ArrayUsmChunk Current { readonly get; private set; }
     readonly object IEnumerator.Current => Current;
+    public static uint MaxDataLength => (uint)Array.MaxLength;
 
     public bool MoveNext()
     {

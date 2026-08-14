@@ -20,10 +20,10 @@ public readonly struct StreamUsmChunk : IUsmChunk<LengthLimitedStream>, IAsyncCo
     }
 
     public override string ToString()
-        => IUsmChunk.ToString(this, "stream");
+        => IUsmChunk.ToString(Signature, DataLength, "stream");
     public void CopyTo(Span<byte> destination)
     {
-        IUsmChunk.ValidateCopyToArgument(this, destination);
+        IUsmChunk.ValidateCopyToArgument(in this, destination);
         Data.ReadExactly(destination);
     }
     public void CopyTo(Stream destination)

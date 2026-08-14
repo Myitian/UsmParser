@@ -9,9 +9,10 @@ public ref struct SpanUsmChunkEnumerator(ReadOnlySpan<byte> span)
 {
     private readonly ReadOnlySpan<byte> _originalSpan = span;
     private ReadOnlySpan<byte> _span = span;
-    public readonly uint MaxDataLength => int.MaxValue;
+    public readonly uint InstanceMaxDataLength => (uint)_span.Length;
     public SpanUsmChunk Current { readonly get; private set; }
     readonly object IEnumerator.Current => throw new NotSupportedException();
+    public static uint MaxDataLength => int.MaxValue;
 
     public bool MoveNext()
     {

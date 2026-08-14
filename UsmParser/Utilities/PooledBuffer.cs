@@ -20,7 +20,7 @@ public sealed class PooledBuffer : IDisposable
         ObjectDisposedException.ThrowIf(_disposed, this);
         return _buffer.AsMemory(0, Capacity);
     }
-    public void EnsureCapacity(int required, bool clearBeforeReturn = false)
+    public void EnsureCapacity(int required, bool clearBeforeReturn = false, bool discardOldData = false)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentOutOfRangeException.ThrowIfNegative(required);
@@ -30,7 +30,8 @@ public sealed class PooledBuffer : IDisposable
             byte[] newBuffer = _pool.Rent(newCapacity);
             if (_buffer.Length > 0)
             {
-                _buffer.AsSpan().CopyTo(newBuffer);
+                if (!discardOldData)
+                    _buffer.AsSpan().CopyTo(newBuffer);
                 _pool.Return(_buffer, clearBeforeReturn);
             }
             _buffer = newBuffer;

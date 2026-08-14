@@ -10,10 +10,10 @@ public readonly ref struct SpanUsmChunk(uint signature, ReadOnlySpan<byte> data)
     public ReadOnlySpan<byte> Data { get; } = data;
     public ref readonly byte Reference => ref MemoryMarshal.GetReference(Data);
     public override string ToString()
-        => IUsmChunk.ToString(this, "span");
+        => IUsmChunk.ToString(Signature, DataLength, "span");
     public void CopyTo(Span<byte> destination)
     {
-        IUsmChunk.ValidateCopyToArgument(this, destination);
+        IUsmChunk.ValidateCopyToArgument(in this, destination);
         Data.CopyTo(destination);
     }
     public void CopyTo(Stream destination)

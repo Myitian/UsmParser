@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 namespace UsmParser.UsmChunks;
 
 public readonly ref struct RefUsmChunk(uint signature, uint dataLength, ref readonly byte reference)
-    : IUsmChunk<ReadOnlyRef<byte>>
+    : IUsmChunk<ReadOnlyRef<byte>>, IContinuousMemoryUsmChunk
 {
     private readonly ref readonly byte _data = ref reference;
     public uint Signature { get; } = signature;
@@ -12,10 +12,10 @@ public readonly ref struct RefUsmChunk(uint signature, uint dataLength, ref read
     public ReadOnlyRef<byte> Data => new(in _data);
     public ref readonly byte Reference => ref _data;
     public override string ToString()
-        => IUsmChunk.ToString(this, "ref");
+        => IUsmChunk.ToString(Signature, DataLength, "ref");
     public void CopyTo(Span<byte> destination)
     {
-        IUsmChunk.ValidateCopyToArgument(this, destination);
+        IUsmChunk.ValidateCopyToArgument(in this, destination);
         MemoryMarshal.CreateReadOnlySpan(in _data, (int)DataLength).CopyTo(destination);
     }
     public void CopyTo(Stream destination)
